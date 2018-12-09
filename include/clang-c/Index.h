@@ -2522,7 +2522,12 @@ enum CXCursorKind {
    */
   CXCursor_OMPTargetTeamsDistributeSimdDirective = 279,
 
-  CXCursor_LastStmt = CXCursor_OMPTargetTeamsDistributeSimdDirective,
+  /** OpenMP qoskv directive.
+   */
+  CXCursor_OMPQOSKVDirective = 280,
+
+  /// CXCursor_LastStmt = CXCursor_OMPTargetTeamsDistributeSimdDirective,
+  CXCursor_LastStmt = CXCursor_OMPQOSKVDirective,
 
   /**
    * Cursor that represents the translation unit itself.

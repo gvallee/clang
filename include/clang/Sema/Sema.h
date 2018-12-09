@@ -8870,6 +8870,10 @@ public:
   StmtResult ActOnOpenMPOrderedDirective(ArrayRef<OMPClause *> Clauses,
                                          Stmt *AStmt, SourceLocation StartLoc,
                                          SourceLocation EndLoc);
+  /// Called on weel-formed '\#pragma omp qoskv' after parsing of the
+  /// associated statement.
+  StmtResult ActOnOpenMPQOSKVDirective(ArrayRef<OMPClause *> Clauses,
+  		  Stmt *AStmt, SourceLocation StartLoc, SourceLocation EndLoc);
   /// Called on well-formed '\#pragma omp atomic' after parsing of the
   /// associated statement.
   StmtResult ActOnOpenMPAtomicDirective(ArrayRef<OMPClause *> Clauses,
@@ -9129,6 +9133,9 @@ public:
   /// Called on well-formed 'mergeable' clause.
   OMPClause *ActOnOpenMPMergeableClause(SourceLocation StartLoc,
                                         SourceLocation EndLoc);
+  /// Called on well-formed 'resilience' clause.
+  OMPClause *ActOnOpenMPResilienceClause(SourceLocation StartLoc,
+  		  SourceLocation EndLoc);
   /// Called on well-formed 'read' clause.
   OMPClause *ActOnOpenMPReadClause(SourceLocation StartLoc,
                                    SourceLocation EndLoc);

@@ -837,6 +837,7 @@ Parser::DeclGroupPtrTy Parser::ParseOpenMPDeclarativeDirectiveWithExtDecl(
   case OMPD_parallel_for:
   case OMPD_parallel_for_simd:
   case OMPD_parallel_sections:
+  case OMPD_qoskv:
   case OMPD_atomic:
   case OMPD_target:
   case OMPD_teams:
@@ -1005,6 +1006,7 @@ StmtResult Parser::ParseOpenMPDeclarativeOrExecutableDirective(
   case OMPD_parallel_sections:
   case OMPD_task:
   case OMPD_ordered:
+  case OMPD_qoskv:
   case OMPD_atomic:
   case OMPD_target:
   case OMPD_teams:
@@ -1308,6 +1310,7 @@ OMPClause *Parser::ParseOpenMPClause(OpenMPDirectiveKind DKind,
   case OMPC_nowait:
   case OMPC_untied:
   case OMPC_mergeable:
+  case OMPC_resilience:
   case OMPC_read:
   case OMPC_write:
   case OMPC_update:

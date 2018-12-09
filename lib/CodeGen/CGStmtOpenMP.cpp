@@ -3545,6 +3545,12 @@ void CodeGenFunction::emitOMPSimpleStore(LValue LVal, RValue RVal,
   }
 }
 
+static void emitOMPQOSKVReadExpr (CodeGenFunction &CGF, bool IsSeqCst,
+		const Expr *X, const Expr *V, SourceLocation Loc)
+{
+	/// GVALLEE: TODO
+}
+
 static void emitOMPAtomicReadExpr(CodeGenFunction &CGF, bool IsSeqCst,
                                   const Expr *X, const Expr *V,
                                   SourceLocation Loc) {
@@ -3836,6 +3842,22 @@ static void emitOMPAtomicCaptureExpr(CodeGenFunction &CGF, bool IsSeqCst,
   // list.
   if (IsSeqCst)
     CGF.CGM.getOpenMPRuntime().emitFlush(CGF, llvm::None, Loc);
+}
+
+static void emitOMPQOSKVExpr(CodeGenFunction &CGF, OpenMPClauseKind Kind,
+		bool IsSeqCst, bool IsPostfixUpdate,
+		const Expr *X, const Expr *V, const Expr *E,
+		const Expr *UE, bool IsXLHSInRHSPart,
+		SourceLocation Loc)
+{
+	switch (Kind)
+	{
+		case OMPC_resilience:
+			emitOMPQOSKVReadExpr (CGF, IsSeqCst, X, V, Loc);
+			break;
+		default:
+			llvm_unreachable("Clause is not allowed in 'omp qoskv'.");
+	}
 }
 
 static void emitOMPAtomicExpr(CodeGenFunction &CGF, OpenMPClauseKind Kind,

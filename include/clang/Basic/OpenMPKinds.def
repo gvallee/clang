@@ -51,6 +51,9 @@
 #ifndef OPENMP_TASK_CLAUSE
 #  define OPENMP_TASK_CLAUSE(Name)
 #endif
+#ifndef OPENMP_QOSKV_CLAUSE
+#  define OPENMP_QOSKV_CLAUSE(Name)
+#endif
 #ifndef OPENMP_ATOMIC_CLAUSE
 #  define OPENMP_ATOMIC_CLAUSE(Name)
 #endif
@@ -189,6 +192,7 @@ OPENMP_DIRECTIVE(taskwait)
 OPENMP_DIRECTIVE(taskgroup)
 OPENMP_DIRECTIVE(flush)
 OPENMP_DIRECTIVE(ordered)
+OPENMP_DIRECTIVE(qoskv)
 OPENMP_DIRECTIVE(atomic)
 OPENMP_DIRECTIVE(target)
 OPENMP_DIRECTIVE(teams)
@@ -250,6 +254,7 @@ OPENMP_CLAUSE(nowait, OMPNowaitClause)
 OPENMP_CLAUSE(untied, OMPUntiedClause)
 OPENMP_CLAUSE(mergeable, OMPMergeableClause)
 OPENMP_CLAUSE(flush, OMPFlushClause)
+OPENMP_CLAUSE(resilience, OMPResilienceClause)
 OPENMP_CLAUSE(read, OMPReadClause)
 OPENMP_CLAUSE(write, OMPWriteClause)
 OPENMP_CLAUSE(update, OMPUpdateClause)
@@ -436,6 +441,9 @@ OPENMP_TASK_CLAUSE(mergeable)
 OPENMP_TASK_CLAUSE(depend)
 OPENMP_TASK_CLAUSE(priority)
 OPENMP_TASK_CLAUSE(in_reduction)
+
+// Clauses allowed for OpenMP directive 'qoskv'.
+OPENMP_QOSKV_CLAUSE(resilience)
 
 // Clauses allowed for OpenMP directive 'atomic'.
 OPENMP_ATOMIC_CLAUSE(read)
@@ -881,6 +889,7 @@ OPENMP_TASKGROUP_CLAUSE(task_reduction)
 #undef OPENMP_PARALLEL_FOR_SIMD_CLAUSE
 #undef OPENMP_PARALLEL_SECTIONS_CLAUSE
 #undef OPENMP_TASK_CLAUSE
+#undef OPENMP_QOSKV_CLAUSE
 #undef OPENMP_ATOMIC_CLAUSE
 #undef OPENMP_TARGET_CLAUSE
 #undef OPENMP_TARGET_DATA_CLAUSE

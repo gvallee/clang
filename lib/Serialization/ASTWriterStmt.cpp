@@ -945,6 +945,14 @@ void ASTStmtWriter::VisitPseudoObjectExpr(PseudoObjectExpr *E) {
   Code = serialization::EXPR_PSEUDO_OBJECT;
 }
 
+void ASTStmtWriter::VisitQOSKVExpr(QOSKVExpr *E)
+{
+	VisitExpr(E);
+	Record.AddSourceLocation(E->getBuiltinLoc());
+	Record.AddSourceLocation(E->getRParenLoc());
+	Code = serialization::EXPR_QOSKV;
+}
+
 void ASTStmtWriter::VisitAtomicExpr(AtomicExpr *E) {
   VisitExpr(E);
   Record.push_back(E->getOp());
@@ -1913,6 +1921,8 @@ void OMPClauseWriter::VisitOMPUntiedClause(OMPUntiedClause *) {}
 
 void OMPClauseWriter::VisitOMPMergeableClause(OMPMergeableClause *) {}
 
+void OMPClauseWriter::VisitOMPResilienceClause(OMPResilienceClause *) {}
+
 void OMPClauseWriter::VisitOMPReadClause(OMPReadClause *) {}
 
 void OMPClauseWriter::VisitOMPWriteClause(OMPWriteClause *) {}
@@ -2437,6 +2447,20 @@ void ASTStmtWriter::VisitOMPTaskDirective(OMPTaskDirective *D) {
   VisitOMPExecutableDirective(D);
   Record.push_back(D->hasCancel() ? 1 : 0);
   Code = serialization::STMT_OMP_TASK_DIRECTIVE;
+}
+
+void ASTStmtWriter::VisitOMPQOSKVDirective(OMPQOSKVDirective *D)
+{
+	VisitStmt(D);
+	Record.push_back(D->getNumClauses());
+	VisitOMPExecutableDirective(D);
+	Record.AddStmt(D->getX());
+	Record.AddStmt(D->getV());
+	Record.AddStmt(D->getExpr());
+	Record.AddStmt(D->getUpdateExpr());
+	Record.push_back(D->isXLHSInRHSPart() ? 1 : 0);
+	Record.push_back(D->isPostfixUpdate() ? 1 : 0);
+	Code = serialization::STMT_OMP_QOSKV_DIRECTIVE;
 }
 
 void ASTStmtWriter::VisitOMPAtomicDirective(OMPAtomicDirective *D) {

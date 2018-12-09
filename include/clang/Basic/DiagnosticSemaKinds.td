@@ -8860,6 +8860,10 @@ def err_omp_parallel_sections_substmt_not_section : Error<
   "statement in 'omp parallel sections' directive must be enclosed into a section region">;
 def err_omp_parallel_reduction_in_task_firstprivate : Error<
   "argument of a reduction clause of a %0 construct must not appear in a firstprivate clause on a task construct">;
+def note_omp_qoskv_previous_clause : Note<
+  "'%0' clause used here">;
+//def err_omp_qoskv_several_clauses : Error<
+//  "directive '#pragma omp qoskv; cannot contain more than one 'resilience' clause">;
 def err_omp_atomic_read_not_expression_statement : Error<
   "the statement for 'atomic read' must be an expression statement of form 'v = x;',"
   " where v and x are both lvalue expressions with scalar type">;

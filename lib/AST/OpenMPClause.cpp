@@ -85,6 +85,7 @@ const OMPClauseWithPreInit *OMPClauseWithPreInit::get(const OMPClause *C) {
   case OMPC_mergeable:
   case OMPC_threadprivate:
   case OMPC_flush:
+  case OMPC_resilience:
   case OMPC_read:
   case OMPC_write:
   case OMPC_update:
@@ -151,6 +152,7 @@ const OMPClauseWithPostUpdate *OMPClauseWithPostUpdate::get(const OMPClause *C) 
   case OMPC_mergeable:
   case OMPC_threadprivate:
   case OMPC_flush:
+  case OMPC_resilience:
   case OMPC_read:
   case OMPC_write:
   case OMPC_update:

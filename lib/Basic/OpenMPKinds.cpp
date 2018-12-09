@@ -148,6 +148,7 @@ unsigned clang::getOpenMPSimpleClauseType(OpenMPClauseKind Kind,
   case OMPC_untied:
   case OMPC_mergeable:
   case OMPC_flush:
+  case OMPC_resilience:
   case OMPC_read:
   case OMPC_write:
   case OMPC_update:
@@ -289,6 +290,7 @@ const char *clang::getOpenMPSimpleClauseTypeName(OpenMPClauseKind Kind,
   case OMPC_untied:
   case OMPC_mergeable:
   case OMPC_flush:
+  case OMPC_resilience:
   case OMPC_read:
   case OMPC_write:
   case OMPC_update:
@@ -421,6 +423,16 @@ bool clang::isAllowedClauseForDirective(OpenMPDirectiveKind DKind,
     break;
   case OMPD_flush:
     return CKind == OMPC_flush;
+    break;
+  case OMPD_qoskv:
+    switch (CKind) {
+#define OPENMP_QOSKV_CLAUSE(Name)                                              \
+  case OMPC_##Name:                                                            \
+    return true;
+#include "clang/Basic/OpenMPKinds.def"
+    default:
+      break;
+    }
     break;
   case OMPD_atomic:
     switch (CKind) {
@@ -945,6 +957,7 @@ void clang::getOpenMPCaptureRegions(
   case OMPD_taskgroup:
   case OMPD_distribute:
   case OMPD_ordered:
+  case OMPD_qoskv:
   case OMPD_atomic:
   case OMPD_target_data:
   case OMPD_distribute_simd:

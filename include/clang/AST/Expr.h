@@ -5303,6 +5303,78 @@ public:
   friend class ASTStmtReader;
 };
 
+class QOSKVExpr : public Expr {
+	private:
+		enum { PTR, ORDER, VAL1, ORDER_FAIL, VAL2, WEAK, END_EXPR };
+		Stmt *SubExprs[END_EXPR + 1];
+		unsigned NumSubExprs;
+		SourceLocation BuiltinLoc, RParenLoc;
+
+		friend class ASTStmtReader;
+	public:
+		QOSKVExpr(SourceLocation BLoc, ArrayRef<Expr*> args, QualType t, SourceLocation RP);
+
+		explicit QOSKVExpr(EmptyShell Empty) : Expr(QOSKVExprClass, Empty) { }
+
+		Expr *getPtr() const {
+    return cast<Expr>(SubExprs[PTR]);
+  }
+  Expr *getOrder() const {
+    return cast<Expr>(SubExprs[ORDER]);
+  }
+  Expr *getScope() const {
+    return cast<Expr>(SubExprs[NumSubExprs - 1]);
+  }
+  Expr *getVal1() const {
+    assert(NumSubExprs > VAL1);
+    return cast<Expr>(SubExprs[VAL1]);
+  }
+  Expr *getOrderFail() const {
+    assert(NumSubExprs > ORDER_FAIL);
+    return cast<Expr>(SubExprs[ORDER_FAIL]);
+  }
+  Expr *getVal2() const {
+    assert(NumSubExprs > VAL2);
+    return cast<Expr>(SubExprs[VAL2]);
+  }
+  Expr *getWeak() const {
+    assert(NumSubExprs > WEAK);
+    return cast<Expr>(SubExprs[WEAK]);
+  }
+  QualType getValueType() const;
+
+  unsigned getNumSubExprs() const { return NumSubExprs; }
+
+  Expr **getSubExprs() { return reinterpret_cast<Expr **>(SubExprs); }
+  const Expr * const *getSubExprs() const {
+    return reinterpret_cast<Expr * const *>(SubExprs);
+  }
+
+  bool isVolatile() const {
+    return getPtr()->getType()->getPointeeType().isVolatileQualified();
+  }
+
+  SourceLocation getBuiltinLoc() const { return BuiltinLoc; }
+  SourceLocation getRParenLoc() const { return RParenLoc; }
+
+  SourceLocation getLocStart() const LLVM_READONLY { return getBeginLoc(); }
+  SourceLocation getBeginLoc() const LLVM_READONLY { return BuiltinLoc; }
+  SourceLocation getLocEnd() const LLVM_READONLY { return getEndLoc(); }
+  SourceLocation getEndLoc() const LLVM_READONLY { return RParenLoc; }
+
+  static bool classof(const Stmt *T) {
+    return T->getStmtClass() == QOSKVExprClass;
+  }
+
+  // Iterators
+  child_range children() {
+    return child_range(SubExprs, SubExprs+NumSubExprs);
+  }
+  const_child_range children() const {
+    return const_child_range(SubExprs, SubExprs + NumSubExprs);
+  }
+};
+
 /// AtomicExpr - Variadic atomic builtins: __atomic_exchange, __atomic_fetch_*,
 /// __atomic_load, __atomic_store, and __atomic_compare_exchange_*, for the
 /// similarly-named C++11 instructions, and __c11 variants for <stdatomic.h>,

@@ -93,6 +93,9 @@ def VAArgExpr : DStmt<Expr>;
 def GenericSelectionExpr : DStmt<Expr>;
 def PseudoObjectExpr : DStmt<Expr>;
 
+// QOS expressions
+def QOSKVExpr : DStmt<Expr>;
+
 // Atomic expressions
 def AtomicExpr : DStmt<Expr>;
 
@@ -219,6 +222,7 @@ def OMPTaskwaitDirective : DStmt<OMPExecutableDirective>;
 def OMPTaskgroupDirective : DStmt<OMPExecutableDirective>;
 def OMPFlushDirective : DStmt<OMPExecutableDirective>;
 def OMPOrderedDirective : DStmt<OMPExecutableDirective>;
+def OMPQOSKVDirective : DStmt<OMPExecutableDirective>;
 def OMPAtomicDirective : DStmt<OMPExecutableDirective>;
 def OMPTargetDirective : DStmt<OMPExecutableDirective>;
 def OMPTargetDataDirective : DStmt<OMPExecutableDirective>;

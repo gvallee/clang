@@ -115,6 +115,7 @@ protected:
 
   class ExprBitfields {
     friend class ASTStmtReader; // deserialization
+    friend class QOSKVExpr;
     friend class AtomicExpr; // ctor
     friend class BlockDeclRefExpr; // ctor
     friend class CallExpr; // ctor

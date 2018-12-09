@@ -484,6 +484,8 @@ void OMPClauseProfiler::VisitOMPUntiedClause(const OMPUntiedClause *) {}
 
 void OMPClauseProfiler::VisitOMPMergeableClause(const OMPMergeableClause *) {}
 
+void OMPClauseProfiler::VisitOMPResilienceClause(const OMPResilienceClause *) {}
+
 void OMPClauseProfiler::VisitOMPReadClause(const OMPReadClause *) {}
 
 void OMPClauseProfiler::VisitOMPWriteClause(const OMPWriteClause *) {}
@@ -835,6 +837,11 @@ void StmtProfiler::VisitOMPFlushDirective(const OMPFlushDirective *S) {
 
 void StmtProfiler::VisitOMPOrderedDirective(const OMPOrderedDirective *S) {
   VisitOMPExecutableDirective(S);
+}
+
+void StmtProfiler::VisitOMPQOSKVDirective(const OMPQOSKVDirective *S)
+{
+	VisitOMPExecutableDirective(S);
 }
 
 void StmtProfiler::VisitOMPAtomicDirective(const OMPAtomicDirective *S) {
@@ -1258,6 +1265,12 @@ void StmtProfiler::VisitPseudoObjectExpr(const PseudoObjectExpr *S) {
     // Normally, we would not profile the source expressions of OVEs.
     if (const OpaqueValueExpr *OVE = dyn_cast<OpaqueValueExpr>(*i))
       Visit(OVE->getSourceExpr());
+}
+
+void StmtProfiler::VisitQOSKVExpr(const QOSKVExpr *S)
+{
+	VisitExpr(S);
+	/// GVALLEE: TODO
 }
 
 void StmtProfiler::VisitAtomicExpr(const AtomicExpr *S) {

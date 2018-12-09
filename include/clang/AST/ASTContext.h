@@ -82,6 +82,7 @@ namespace clang {
 class APValue;
 class ASTMutationListener;
 class ASTRecordLayout;
+class QOSKVExpr;
 class AtomicExpr;
 class BlockExpr;
 class BuiltinTemplateDecl;

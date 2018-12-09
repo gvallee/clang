@@ -2313,6 +2313,7 @@ void Sema::ActOnOpenMPRegionStart(OpenMPDirectiveKind DKind, Scope *CurScope) {
   case OMPD_distribute:
   case OMPD_distribute_simd:
   case OMPD_ordered:
+  case OMPD_qoskv:
   case OMPD_atomic:
   case OMPD_target_data: {
     Sema::CapturedParamNameType Params[] = {
@@ -3227,6 +3228,9 @@ StmtResult Sema::ActOnOpenMPExecutableDirective(
   case OMPD_ordered:
     Res = ActOnOpenMPOrderedDirective(ClausesWithImplicit, AStmt, StartLoc,
                                       EndLoc);
+    break;
+  case OMPD_qoskv:
+    Res = ActOnOpenMPQOSKVDirective(ClausesWithImplicit, AStmt, StartLoc, EndLoc);
     break;
   case OMPD_atomic:
     Res = ActOnOpenMPAtomicDirective(ClausesWithImplicit, AStmt, StartLoc,
@@ -6191,6 +6195,54 @@ bool OpenMPAtomicUpdateChecker::checkStatement(Stmt *S, unsigned DiagId,
   return ErrorFound != NoError;
 }
 
+StmtResult Sema::ActOnOpenMPQOSKVDirective(ArrayRef<OMPClause *> Clauses,
+		Stmt *AStmt,
+		SourceLocation StartLoc,
+		SourceLocation EndLoc)
+{
+	if (!AStmt)
+		return StmtError();
+
+	auto *CS = cast<CapturedStmt>(AStmt);
+	OpenMPClauseKind QOSKVKind = OMPC_unknown;
+	SourceLocation QOSKVKindLoc;
+
+	for (const OMPClause *C : Clauses)
+	{
+		if (C->getClauseKind() == OMPC_resilience)
+		{
+			// GVALLEE: FIXME we can have more than one resilience clause
+			//Diag (C->getBeginLoc(), diag::err_omp_qoskv_several_clauses)
+			//	<< SourceRange (C->getBeginLoc(), C->getEndLoc());
+			//Diag (QOSKVKindLoc, diag::note_omp_qoskv_previous_clause)
+			//	<< getOpenMPClauseName (QOSKVKind);
+		}
+		else
+		{
+			QOSKVKind = C->getClauseKind();
+			QOSKVKindLoc = C->getBeginLoc();
+		}
+	}
+
+	Stmt *Body = CS->getCapturedStmt ();
+	if (auto *EWC = dyn_cast<ExprWithCleanups>(Body))
+		Body = EWC->getSubExpr();
+
+	Expr *X = nullptr;
+	Expr *V = nullptr;
+	Expr *E = nullptr;
+	Expr *UE = nullptr;
+	bool IsXLHSInRHSPart = false;
+	bool IsPostfixUpdate = false;
+
+	if (QOSKVKind == OMPC_resilience)
+	{
+		// GVALLEE TODO
+	}
+
+	return StmtError();
+}
+
 StmtResult Sema::ActOnOpenMPAtomicDirective(ArrayRef<OMPClause *> Clauses,
                                             Stmt *AStmt,
                                             SourceLocation StartLoc,
@@ -7927,6 +7979,7 @@ OMPClause *Sema::ActOnOpenMPSingleExprClause(OpenMPClauseKind Kind, Expr *Expr,
   case OMPC_mergeable:
   case OMPC_threadprivate:
   case OMPC_flush:
+  case OMPC_resilience:
   case OMPC_read:
   case OMPC_write:
   case OMPC_update:
@@ -8026,6 +8079,7 @@ static OpenMPDirectiveKind getOpenMPCaptureRegionForClause(
     case OMPD_taskgroup:
     case OMPD_distribute:
     case OMPD_ordered:
+    case OMPD_qoskv:
     case OMPD_atomic:
     case OMPD_distribute_simd:
     case OMPD_teams_distribute:
@@ -8091,6 +8145,7 @@ static OpenMPDirectiveKind getOpenMPCaptureRegionForClause(
     case OMPD_taskgroup:
     case OMPD_distribute:
     case OMPD_ordered:
+    case OMPD_qoskv:
     case OMPD_atomic:
     case OMPD_distribute_simd:
     case OMPD_teams_distribute:
@@ -8156,6 +8211,7 @@ static OpenMPDirectiveKind getOpenMPCaptureRegionForClause(
     case OMPD_taskgroup:
     case OMPD_distribute:
     case OMPD_ordered:
+    case OMPD_qoskv:
     case OMPD_atomic:
     case OMPD_distribute_simd:
       llvm_unreachable("Unexpected OpenMP directive with num_teams-clause");
@@ -8219,6 +8275,7 @@ static OpenMPDirectiveKind getOpenMPCaptureRegionForClause(
     case OMPD_taskgroup:
     case OMPD_distribute:
     case OMPD_ordered:
+    case OMPD_qoskv:
     case OMPD_atomic:
     case OMPD_distribute_simd:
       llvm_unreachable("Unexpected OpenMP directive with thread_limit-clause");
@@ -8281,6 +8338,7 @@ static OpenMPDirectiveKind getOpenMPCaptureRegionForClause(
     case OMPD_taskgroup:
     case OMPD_distribute:
     case OMPD_ordered:
+    case OMPD_qoskv:
     case OMPD_atomic:
     case OMPD_distribute_simd:
     case OMPD_target_teams:
@@ -8345,6 +8403,7 @@ static OpenMPDirectiveKind getOpenMPCaptureRegionForClause(
     case OMPD_critical:
     case OMPD_taskgroup:
     case OMPD_ordered:
+    case OMPD_qoskv:
     case OMPD_atomic:
     case OMPD_target_teams:
       llvm_unreachable("Unexpected OpenMP directive with schedule clause");
@@ -8408,6 +8467,7 @@ static OpenMPDirectiveKind getOpenMPCaptureRegionForClause(
     case OMPD_taskgroup:
     case OMPD_distribute:
     case OMPD_ordered:
+    case OMPD_qoskv:
     case OMPD_atomic:
     case OMPD_distribute_simd:
       llvm_unreachable("Unexpected OpenMP directive with num_teams-clause");
@@ -8438,6 +8498,7 @@ static OpenMPDirectiveKind getOpenMPCaptureRegionForClause(
   case OMPC_mergeable:
   case OMPC_threadprivate:
   case OMPC_flush:
+  case OMPC_resilience:
   case OMPC_read:
   case OMPC_write:
   case OMPC_update:
@@ -8751,6 +8812,7 @@ OMPClause *Sema::ActOnOpenMPSimpleClause(
   case OMPC_mergeable:
   case OMPC_threadprivate:
   case OMPC_flush:
+  case OMPC_resilience:
   case OMPC_read:
   case OMPC_write:
   case OMPC_update:
@@ -8909,6 +8971,7 @@ OMPClause *Sema::ActOnOpenMPSingleExprWithArgClause(
   case OMPC_mergeable:
   case OMPC_threadprivate:
   case OMPC_flush:
+  case OMPC_resilience:
   case OMPC_read:
   case OMPC_write:
   case OMPC_update:
@@ -9063,6 +9126,9 @@ OMPClause *Sema::ActOnOpenMPClause(OpenMPClauseKind Kind,
   case OMPC_mergeable:
     Res = ActOnOpenMPMergeableClause(StartLoc, EndLoc);
     break;
+  case OMPC_resilience:
+    Res = ActOnOpenMPResilienceClause(StartLoc, EndLoc);
+    break;
   case OMPC_read:
     Res = ActOnOpenMPReadClause(StartLoc, EndLoc);
     break;
@@ -9145,6 +9211,12 @@ OMPClause *Sema::ActOnOpenMPUntiedClause(SourceLocation StartLoc,
 OMPClause *Sema::ActOnOpenMPMergeableClause(SourceLocation StartLoc,
                                             SourceLocation EndLoc) {
   return new (Context) OMPMergeableClause(StartLoc, EndLoc);
+}
+
+OMPClause *Sema::ActOnOpenMPResilienceClause(SourceLocation StartLoc,
+		SourceLocation EndLoc)
+{
+	return new (Context) OMPResilienceClause(StartLoc, EndLoc);
 }
 
 OMPClause *Sema::ActOnOpenMPReadClause(SourceLocation StartLoc,
@@ -9275,6 +9347,7 @@ OMPClause *Sema::ActOnOpenMPVarListClause(
   case OMPC_untied:
   case OMPC_mergeable:
   case OMPC_threadprivate:
+  case OMPC_resilience:
   case OMPC_read:
   case OMPC_write:
   case OMPC_update:

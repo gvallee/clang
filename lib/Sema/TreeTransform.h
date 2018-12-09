@@ -3227,6 +3227,14 @@ public:
     return getSema().BuildEmptyCXXFoldExpr(EllipsisLoc, Operator);
   }
 
+  ExprResult RebuildQOSKVExpr(SourceLocation BuiltinLoc,
+  		  MultiExprArg SubExprs,
+  		  QualType RetTy,
+  		  SourceLocation RParenLoc)
+  {
+  	  /// GVALLEE: FIXME return new (SemaRef.Context) QOSKVExpr (BuiltinLoc, SubExprs, RetTy, RParenLoc);
+  }
+
   /// Build a new atomic operation expression.
   ///
   /// By default, performs semantic analysis to build the new expression.
@@ -7921,6 +7929,17 @@ TreeTransform<Derived>::TransformOMPOrderedDirective(OMPOrderedDirective *D) {
 
 template <typename Derived>
 StmtResult
+TreeTransform<Derived>::TransformOMPQOSKVDirective(OMPQOSKVDirective *D)
+{
+	DeclarationNameInfo DirName;
+	getDerived().getSema().StartOpenMPDSABlock(OMPD_qoskv, DirName, nullptr, D->getLocStart());
+	StmtResult Res = getDerived().TransformOMPExecutableDirective(D);
+	getDerived().getSema().EndOpenMPDSABlock(Res.get());
+	return Res;
+}
+
+template <typename Derived>
+StmtResult
 TreeTransform<Derived>::TransformOMPAtomicDirective(OMPAtomicDirective *D) {
   DeclarationNameInfo DirName;
   getDerived().getSema().StartOpenMPDSABlock(OMPD_atomic, DirName, nullptr,
@@ -8357,6 +8376,12 @@ template <typename Derived>
 OMPClause *
 TreeTransform<Derived>::TransformOMPMergeableClause(OMPMergeableClause *C) {
   // No need to rebuild this clause, no template-dependent parameters.
+  return C;
+}
+
+template <typename Derived>
+OMPClause *TreeTransform<Derived>::TransformOMPResilienceClause(OMPResilienceClause *C)
+{
   return C;
 }
 
@@ -12236,6 +12261,23 @@ template<typename Derived>
 ExprResult
 TreeTransform<Derived>::TransformAsTypeExpr(AsTypeExpr *E) {
   llvm_unreachable("Cannot transform asType expressions yet");
+}
+
+template<typename Derived>
+ExprResult
+TreeTransform<Derived>::TransformQOSKVExpr(QOSKVExpr *E)
+{
+	QualType RetTy = getDerived().TransformType(E->getType());
+	bool ArgumentChanged = false;
+	SmallVector<Expr*, 8> SubExprs;
+	SubExprs.reserve(E->getNumSubExprs());
+	if (getDerived().TransformExprs(E->getSubExprs(), E->getNumSubExprs(), false, SubExprs, &ArgumentChanged))
+		return ExprError();
+
+	if (!getDerived().AlwaysRebuild() && !ArgumentChanged)
+		return E;
+
+	return getDerived().RebuildQOSKVExpr(E->getBuiltinLoc(), SubExprs, RetTy, E->getRParenLoc());
 }
 
 template<typename Derived>

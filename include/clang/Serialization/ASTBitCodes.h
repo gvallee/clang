@@ -1730,6 +1730,8 @@ namespace serialization {
       /// A PseudoObjectExpr record.
       EXPR_PSEUDO_OBJECT,
 
+      EXPR_QOSKV,
+
       /// An AtomicExpr record.
       EXPR_ATOMIC,
 
@@ -1922,6 +1924,7 @@ namespace serialization {
       STMT_OMP_TASKWAIT_DIRECTIVE,
       STMT_OMP_FLUSH_DIRECTIVE,
       STMT_OMP_ORDERED_DIRECTIVE,
+      STMT_OMP_QOSKV_DIRECTIVE,
       STMT_OMP_ATOMIC_DIRECTIVE,
       STMT_OMP_TARGET_DIRECTIVE,
       STMT_OMP_TARGET_DATA_DIRECTIVE,

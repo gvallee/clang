@@ -741,6 +741,8 @@ void OMPClausePrinter::VisitOMPMergeableClause(OMPMergeableClause *) {
   OS << "mergeable";
 }
 
+void OMPClausePrinter::VisitOMPResilienceClause(OMPResilienceClause *) { OS << "resilience"; }
+
 void OMPClausePrinter::VisitOMPReadClause(OMPReadClause *) { OS << "read"; }
 
 void OMPClausePrinter::VisitOMPWriteClause(OMPWriteClause *) { OS << "write"; }
@@ -1172,6 +1174,12 @@ void StmtPrinter::VisitOMPFlushDirective(OMPFlushDirective *Node) {
 void StmtPrinter::VisitOMPOrderedDirective(OMPOrderedDirective *Node) {
   Indent() << "#pragma omp ordered";
   PrintOMPExecutableDirective(Node, Node->hasClausesOfKind<OMPDependClause>());
+}
+
+void StmtPrinter::VisitOMPQOSKVDirective(OMPQOSKVDirective *Node)
+{
+	Indent() << "#pragma omp qoskv";
+	PrintOMPExecutableDirective(Node);
 }
 
 void StmtPrinter::VisitOMPAtomicDirective(OMPAtomicDirective *Node) {
@@ -1984,6 +1992,11 @@ void StmtPrinter::VisitVAArgExpr(VAArgExpr *Node) {
 
 void StmtPrinter::VisitPseudoObjectExpr(PseudoObjectExpr *Node) {
   PrintExpr(Node->getSyntacticForm());
+}
+
+void StmtPrinter::VisitQOSKVExpr(QOSKVExpr *Node)
+{
+	// GVALLEE: TODO
 }
 
 void StmtPrinter::VisitAtomicExpr(AtomicExpr *Node) {

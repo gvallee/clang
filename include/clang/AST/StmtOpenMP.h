@@ -2112,6 +2112,85 @@ public:
   }
 };
 
+/// This represents '#pragma omp qoskv' directives.
+class OMPQOSKVDirective : public OMPExecutableDirective {
+	friend class ASTStmtReader;
+	bool IsXLHSInRHSPart;
+	bool IsPostfixUpdate;
+
+	OMPQOSKVDirective(SourceLocation StartLoc, SourceLocation EndLoc, unsigned NumClasses) :
+		OMPExecutableDirective(this, OMPQOSKVDirectiveClass, OMPD_qoskv, StartLoc, EndLoc, NumClasses, 5),
+		IsXLHSInRHSPart(false), IsPostfixUpdate(false) {}
+
+	explicit OMPQOSKVDirective(unsigned NumClasses)
+		: OMPExecutableDirective(this, OMPQOSKVDirectiveClass, OMPD_qoskv,
+				SourceLocation(), SourceLocation(), NumClasses, 5),
+		IsXLHSInRHSPart(false), IsPostfixUpdate(false) {}
+
+	  /// Set 'x' part of the associated expression/statement.
+  void setX(Expr *X) { *std::next(child_begin()) = X; }
+  /// Set helper expression of the form
+  /// 'OpaqueValueExpr(x) binop OpaqueValueExpr(expr)' or
+  /// 'OpaqueValueExpr(expr) binop OpaqueValueExpr(x)'.
+  void setUpdateExpr(Expr *UE) { *std::next(child_begin(), 2) = UE; }
+  /// Set 'v' part of the associated expression/statement.
+  void setV(Expr *V) { *std::next(child_begin(), 3) = V; }
+  /// Set 'expr' part of the associated expression/statement.
+  void setExpr(Expr *E) { *std::next(child_begin(), 4) = E; }
+
+public:
+  static OMPQOSKVDirective *
+  Create(const ASTContext &C, SourceLocation StartLoc, SourceLocation EndLoc,
+         ArrayRef<OMPClause *> Clauses, Stmt *AssociatedStmt, Expr *X, Expr *V,
+         Expr *E, Expr *UE, bool IsXLHSInRHSPart, bool IsPostfixUpdate);
+
+  /// Creates an empty directive with the place for \a NumClauses
+  /// clauses.
+  ///
+  /// \param C AST context.
+  /// \param NumClauses Number of clauses.
+  ///
+  static OMPQOSKVDirective *CreateEmpty(const ASTContext &C,
+                                         unsigned NumClauses, EmptyShell);
+
+  /// Get 'x' part of the associated expression/statement.
+  Expr *getX() { return cast_or_null<Expr>(*std::next(child_begin())); }
+  const Expr *getX() const {
+    return cast_or_null<Expr>(*std::next(child_begin()));
+  }
+  /// Get helper expression of the form
+  /// 'OpaqueValueExpr(x) binop OpaqueValueExpr(expr)' or
+  /// 'OpaqueValueExpr(expr) binop OpaqueValueExpr(x)'.
+  Expr *getUpdateExpr() {
+    return cast_or_null<Expr>(*std::next(child_begin(), 2));
+  }
+  const Expr *getUpdateExpr() const {
+    return cast_or_null<Expr>(*std::next(child_begin(), 2));
+  }
+  /// Return true if helper update expression has form
+  /// 'OpaqueValueExpr(x) binop OpaqueValueExpr(expr)' and false if it has form
+  /// 'OpaqueValueExpr(expr) binop OpaqueValueExpr(x)'.
+  bool isXLHSInRHSPart() const { return IsXLHSInRHSPart; }
+  /// Return true if 'v' expression must be updated to original value of
+  /// 'x', false if 'v' must be updated to the new value of 'x'.
+  bool isPostfixUpdate() const { return IsPostfixUpdate; }
+  /// Get 'v' part of the associated expression/statement.
+  Expr *getV() { return cast_or_null<Expr>(*std::next(child_begin(), 3)); }
+  const Expr *getV() const {
+    return cast_or_null<Expr>(*std::next(child_begin(), 3));
+  }
+  /// Get 'expr' part of the associated expression/statement.
+  Expr *getExpr() { return cast_or_null<Expr>(*std::next(child_begin(), 4)); }
+  const Expr *getExpr() const {
+    return cast_or_null<Expr>(*std::next(child_begin(), 4));
+  }
+
+  static bool classof(const Stmt *T) {
+    return T->getStmtClass() == OMPQOSKVDirectiveClass;
+  }
+};
+
+
 /// This represents '#pragma omp atomic' directive.
 ///
 /// \code

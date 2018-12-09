@@ -1001,6 +1001,13 @@ void ASTStmtReader::VisitPseudoObjectExpr(PseudoObjectExpr *E) {
   }
 }
 
+void ASTStmtReader::VisitQOSKVExpr(QOSKVExpr *E)
+{
+	VisitExpr(E);
+	E->BuiltinLoc = ReadSourceLocation();
+	E->RParenLoc = ReadSourceLocation();
+}
+
 void ASTStmtReader::VisitAtomicExpr(AtomicExpr *E) {
   VisitExpr(E);
   E->Op = AtomicExpr::AtomicOp(Record.readInt());
@@ -1867,6 +1874,9 @@ OMPClause *OMPClauseReader::readClause() {
   case OMPC_mergeable:
     C = new (Context) OMPMergeableClause();
     break;
+  case OMPC_resilience:
+    C = new (Context) OMPResilienceClause();
+    break;
   case OMPC_read:
     C = new (Context) OMPReadClause();
     break;
@@ -2102,6 +2112,8 @@ void OMPClauseReader::VisitOMPNowaitClause(OMPNowaitClause *) {}
 void OMPClauseReader::VisitOMPUntiedClause(OMPUntiedClause *) {}
 
 void OMPClauseReader::VisitOMPMergeableClause(OMPMergeableClause *) {}
+
+void OMPClauseReader::VisitOMPResilienceClause(OMPResilienceClause *) {}
 
 void OMPClauseReader::VisitOMPReadClause(OMPReadClause *) {}
 
@@ -2887,6 +2899,20 @@ void ASTStmtReader::VisitOMPOrderedDirective(OMPOrderedDirective *D) {
   // The NumClauses field was read in ReadStmtFromStream.
   Record.skipInts(1);
   VisitOMPExecutableDirective(D);
+}
+
+void ASTStmtReader::VisitOMPQOSKVDirective(OMPQOSKVDirective *D)
+{
+	VisitStmt (D);
+	// The NumClauses field was read in ReadStmtFromStream.
+	Record.skipInts(1);
+	VisitOMPExecutableDirective(D);
+	D->setX(Record.readSubExpr());
+	D->setV(Record.readSubExpr());
+	D->setExpr(Record.readSubExpr());
+	D->setUpdateExpr(Record.readSubExpr());
+	D->IsXLHSInRHSPart = Record.readInt() != 0;
+	D->IsPostfixUpdate = Record.readInt() != 0;
 }
 
 void ASTStmtReader::VisitOMPAtomicDirective(OMPAtomicDirective *D) {
@@ -3688,6 +3714,11 @@ Stmt *ASTReader::ReadStmtFromStream(ModuleFile &F) {
           Context, Record[ASTStmtReader::NumStmtFields], Empty);
       break;
 
+    case STMT_OMP_QOSKV_DIRECTIVE:
+      S = OMPQOSKVDirective::CreateEmpty(
+      		      Context, Record[ASTStmtReader::NumStmtFields], Empty);
+      break;
+
     case STMT_OMP_ATOMIC_DIRECTIVE:
       S = OMPAtomicDirective::CreateEmpty(
           Context, Record[ASTStmtReader::NumStmtFields], Empty);
@@ -4106,6 +4137,10 @@ Stmt *ASTReader::ReadStmtFromStream(ModuleFile &F) {
       S = PseudoObjectExpr::Create(Context, Empty, numSemanticExprs);
       break;
     }
+
+    case EXPR_QOSKV:
+      S = new (Context) QOSKVExpr(Empty);
+      break;
 
     case EXPR_ATOMIC:
       S = new (Context) AtomicExpr(Empty);

@@ -1105,6 +1105,8 @@ DEF_TRAVERSE_TYPE(ObjCObjectType, {
 DEF_TRAVERSE_TYPE(ObjCObjectPointerType,
                   { TRY_TO(TraverseType(T->getPointeeType())); })
 
+// GVALLEE: TODO? DEF_TRAVERSE_TYPE(QOSKVType, { TRY_TO(TraverseType(T->getValueType())); })
+
 DEF_TRAVERSE_TYPE(AtomicType, { TRY_TO(TraverseType(T->getValueType())); })
 
 DEF_TRAVERSE_TYPE(PipeType, { TRY_TO(TraverseType(T->getElementType())); })
@@ -1356,6 +1358,8 @@ DEF_TRAVERSE_TYPELOC(ObjCObjectType, {
 
 DEF_TRAVERSE_TYPELOC(ObjCObjectPointerType,
                      { TRY_TO(TraverseTypeLoc(TL.getPointeeLoc())); })
+
+// GVALLEE: FIXME? DEF_TRAVERSE_TYPSLOC(QOSKVType, { TRY_TO(TraverseTypeLoc(TL.getValueLoc())); })
 
 DEF_TRAVERSE_TYPELOC(AtomicType, { TRY_TO(TraverseTypeLoc(TL.getValueLoc())); })
 
@@ -2559,6 +2563,7 @@ DEF_TRAVERSE_STMT(SubstNonTypeTemplateParmExpr, {})
 DEF_TRAVERSE_STMT(FunctionParmPackExpr, {})
 DEF_TRAVERSE_STMT(MaterializeTemporaryExpr, {})
 DEF_TRAVERSE_STMT(CXXFoldExpr, {})
+DEF_TRAVERSE_STMT(QOSKVExpr, {})
 DEF_TRAVERSE_STMT(AtomicExpr, {})
 
 // For coroutines expressions, traverse either the operand
@@ -2690,6 +2695,9 @@ DEF_TRAVERSE_STMT(OMPFlushDirective,
 
 DEF_TRAVERSE_STMT(OMPOrderedDirective,
                   { TRY_TO(TraverseOMPExecutableDirective(S)); })
+
+DEF_TRAVERSE_STMT(OMPQOSKVDirective,
+		{ TRY_TO(TraverseOMPExecutableDirective(S)); })
 
 DEF_TRAVERSE_STMT(OMPAtomicDirective,
                   { TRY_TO(TraverseOMPExecutableDirective(S)); })
@@ -2880,6 +2888,12 @@ bool RecursiveASTVisitor<Derived>::VisitOMPUntiedClause(OMPUntiedClause *) {
 template <typename Derived>
 bool
 RecursiveASTVisitor<Derived>::VisitOMPMergeableClause(OMPMergeableClause *) {
+  return true;
+}
+
+template <typename Derived>
+bool RecursiveASTVisitor<Derived>::VisitOMPResilienceClause(OMPResilienceClause *)
+{
   return true;
 }
 

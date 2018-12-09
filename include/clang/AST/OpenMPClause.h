@@ -1087,6 +1087,34 @@ public:
   }
 };
 
+/// This represents 'resilience' clause in the '#pragma omp resilience' directive
+///
+/// \code
+/// #pragma omp qos-kv resilience (...)
+/// \endcode
+/// In this example directive '#pragma omp qos-kv' has 'resilience' clause
+class OMPResilienceClause : public OMPClause {
+	public:
+		/// Build the 'resilience' clause.
+		///
+		/// \param StartLoc Starting location of the clause.
+		/// \param EndLoc Ending location of the clause.
+		OMPResilienceClause(SourceLocation StartLoc, SourceLocation EndLoc)
+			: OMPClause (OMPC_resilience, StartLoc, EndLoc) {}
+
+		/// Build an empty clause.
+		OMPResilienceClause() : OMPClause(OMPC_resilience, SourceLocation(), SourceLocation()) {}
+
+		child_range children() {
+			return child_range(child_iterator(), child_iterator());
+		}
+
+		static bool classof (const OMPClause *T) {
+			return T->getClauseKind() == OMPC_resilience;
+		}
+};
+
+
 /// This represents 'read' clause in the '#pragma omp atomic' directive.
 ///
 /// \code
