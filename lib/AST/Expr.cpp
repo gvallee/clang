@@ -2198,6 +2198,7 @@ bool Expr::isUnusedResultAWarning(const Expr *&WarnE, SourceLocation &Loc,
   }
   case CompoundAssignOperatorClass:
   case VAArgExprClass:
+  case QOSKVExprClass:
   case AtomicExprClass:
     return false;
 
@@ -3120,6 +3121,7 @@ bool Expr::HasSideEffects(const ASTContext &Ctx,
   case MSPropertySubscriptExprClass:
   case CompoundAssignOperatorClass:
   case VAArgExprClass:
+  case QOSKVExprClass:
   case AtomicExprClass:
   case CXXThrowExprClass:
   case CXXNewExprClass:
@@ -4072,6 +4074,24 @@ Stmt::const_child_range UnaryExprOrTypeTraitExpr::children() const {
     return const_child_range(const_child_iterator(), const_child_iterator());
   }
   return const_child_range(&Argument.Ex, &Argument.Ex + 1);
+}
+
+QOSKVExpr::QOSKVExpr(SourceLocation BLoc, ArrayRef<Expr*> args, QualType t, SourceLocation RP)
+	: Expr(QOSKVExprClass, t, VK_RValue, OK_Ordinary, false, false, false, false),
+	  NumSubExprs(args.size()), BuiltinLoc(BLoc), RParenLoc(RP)
+{
+	for (unsigned i = 0; i != args.size(); i++) {
+		if (args[i]->isTypeDependent())
+			ExprBits.TypeDependent = true;
+		if (args[i]->isValueDependent())
+			ExprBits.ValueDependent = true;
+		if (args[i]->isInstantiationDependent())
+			ExprBits.InstantiationDependent = true;
+		if (args[i]->containsUnexpandedParameterPack())
+			ExprBits.ContainsUnexpandedParameterPack = true;
+
+		SubExprs[i] = args[i];
+	}
 }
 
 AtomicExpr::AtomicExpr(SourceLocation BLoc, ArrayRef<Expr*> args,

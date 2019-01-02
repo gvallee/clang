@@ -3232,7 +3232,7 @@ public:
   		  QualType RetTy,
   		  SourceLocation RParenLoc)
   {
-  	  /// GVALLEE: FIXME return new (SemaRef.Context) QOSKVExpr (BuiltinLoc, SubExprs, RetTy, RParenLoc);
+  	  return new (SemaRef.Context) QOSKVExpr (BuiltinLoc, SubExprs, RetTy, RParenLoc);
   }
 
   /// Build a new atomic operation expression.

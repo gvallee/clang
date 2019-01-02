@@ -9262,8 +9262,7 @@ OMPClause *Sema::ActOnOpenMPVarListClause(
   OMPClause *Res = nullptr;
   switch (Kind) {
   case OMPC_resilience:
-    // GVALLEE: FIXME
-    // Res = ActOnOpenMPResilienceClause(VarList, StartLoc, LParenLoc, EndLoc);
+    Res = ActOnOpenMPResilienceClause(StartLoc, EndLoc);
     break;
   case OMPC_private:
     Res = ActOnOpenMPPrivateClause(VarList, StartLoc, LParenLoc, EndLoc);
