@@ -9261,6 +9261,10 @@ OMPClause *Sema::ActOnOpenMPVarListClause(
     SourceLocation DepLinMapLoc) {
   OMPClause *Res = nullptr;
   switch (Kind) {
+  case OMPC_resilience:
+    // GVALLEE: FIXME
+    // Res = ActOnOpenMPResilienceClause(VarList, StartLoc, LParenLoc, EndLoc);
+    break;
   case OMPC_private:
     Res = ActOnOpenMPPrivateClause(VarList, StartLoc, LParenLoc, EndLoc);
     break;
@@ -9339,7 +9343,6 @@ OMPClause *Sema::ActOnOpenMPVarListClause(
   case OMPC_untied:
   case OMPC_mergeable:
   case OMPC_threadprivate:
-  case OMPC_resilience:
   case OMPC_read:
   case OMPC_write:
   case OMPC_update:
