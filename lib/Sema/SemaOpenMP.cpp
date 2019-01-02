@@ -6211,14 +6211,6 @@ StmtResult Sema::ActOnOpenMPQOSKVDirective(ArrayRef<OMPClause *> Clauses,
 	{
 		if (C->getClauseKind() == OMPC_resilience)
 		{
-			// GVALLEE: FIXME we can have more than one resilience clause
-			//Diag (C->getBeginLoc(), diag::err_omp_qoskv_several_clauses)
-			//	<< SourceRange (C->getBeginLoc(), C->getEndLoc());
-			//Diag (QOSKVKindLoc, diag::note_omp_qoskv_previous_clause)
-			//	<< getOpenMPClauseName (QOSKVKind);
-		}
-		else
-		{
 			QOSKVKind = C->getClauseKind();
 			QOSKVKindLoc = C->getBeginLoc();
 		}
@@ -6228,19 +6220,19 @@ StmtResult Sema::ActOnOpenMPQOSKVDirective(ArrayRef<OMPClause *> Clauses,
 	if (auto *EWC = dyn_cast<ExprWithCleanups>(Body))
 		Body = EWC->getSubExpr();
 
-	Expr *X = nullptr;
-	Expr *V = nullptr;
-	Expr *E = nullptr;
-	Expr *UE = nullptr;
-	bool IsXLHSInRHSPart = false;
-	bool IsPostfixUpdate = false;
+//	Expr *X = nullptr;
+//	Expr *V = nullptr;
+//	Expr *E = nullptr;
+//	Expr *UE = nullptr;
+//	bool IsXLHSInRHSPart = false;
+//	bool IsPostfixUpdate = false;
 
 	if (QOSKVKind == OMPC_resilience)
 	{
-		// GVALLEE TODO
+		/// GVALLEE: TODO
 	}
 
-	return StmtError();
+	return OMPQOSKVDirective::Create (Context, StartLoc, EndLoc, Clauses, AStmt);
 }
 
 StmtResult Sema::ActOnOpenMPAtomicDirective(ArrayRef<OMPClause *> Clauses,

@@ -2141,8 +2141,9 @@ class OMPQOSKVDirective : public OMPExecutableDirective {
 public:
   static OMPQOSKVDirective *
   Create(const ASTContext &C, SourceLocation StartLoc, SourceLocation EndLoc,
-         ArrayRef<OMPClause *> Clauses, Stmt *AssociatedStmt, Expr *X, Expr *V,
-         Expr *E, Expr *UE, bool IsXLHSInRHSPart, bool IsPostfixUpdate);
+         ArrayRef<OMPClause *> Clauses, Stmt *AssociatedStmt);
+  //, Expr *X, Expr *V,
+  //       Expr *E, Expr *UE, bool IsXLHSInRHSPart, bool IsPostfixUpdate);
 
   /// Creates an empty directive with the place for \a NumClauses
   /// clauses.

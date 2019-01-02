@@ -642,8 +642,9 @@ OMPOrderedDirective *OMPOrderedDirective::CreateEmpty(const ASTContext &C,
 
 OMPQOSKVDirective *OMPQOSKVDirective::Create(
 		const ASTContext &C, SourceLocation StartLoc, SourceLocation EndLoc,
-		ArrayRef<OMPClause *> Clauses, Stmt *AssociatedStmt, Expr *X, Expr *V,
-		Expr *E, Expr *UE, bool IsXLHSInRHSPart, bool IsPostfixUpdate)
+		ArrayRef<OMPClause *> Clauses, Stmt *AssociatedStmt)
+//		, Expr *X, Expr *V,
+//		Expr *E, Expr *UE, bool IsXLHSInRHSPart, bool IsPostfixUpdate)
 {
 	unsigned Size = llvm::alignTo(sizeof(OMPQOSKVDirective), alignof(OMPClause *));
 	void *Mem = C.Allocate(Size + sizeof(OMPClause *) * Clauses.size() + 5 * sizeof(Stmt *));
@@ -651,12 +652,12 @@ OMPQOSKVDirective *OMPQOSKVDirective::Create(
 	OMPQOSKVDirective *Dir = new (Mem) OMPQOSKVDirective(StartLoc, EndLoc, Clauses.size());
 	Dir->setClauses(Clauses);
 	Dir->setAssociatedStmt(AssociatedStmt);
-	Dir->setX(X);
-	Dir->setV(V);
-	Dir->setExpr(E);
-	Dir->setUpdateExpr(UE);
-	Dir->IsXLHSInRHSPart = IsXLHSInRHSPart;
-	Dir->IsPostfixUpdate = IsPostfixUpdate;
+//	Dir->setX(X);
+//	Dir->setV(V);
+//	Dir->setExpr(E);
+//	Dir->setUpdateExpr(UE);
+//	Dir->IsXLHSInRHSPart = IsXLHSInRHSPart;
+//	Dir->IsPostfixUpdate = IsPostfixUpdate;
 	return Dir;
 }
 
