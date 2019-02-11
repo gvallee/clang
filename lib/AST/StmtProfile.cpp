@@ -1267,6 +1267,7 @@ void StmtProfiler::VisitPseudoObjectExpr(const PseudoObjectExpr *S) {
       Visit(OVE->getSourceExpr());
 }
 
+/// GVALLEE: I do not think this is the way to go
 void StmtProfiler::VisitQOSKVExpr(const QOSKVExpr *S)
 {
 	VisitExpr(S);

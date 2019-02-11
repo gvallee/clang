@@ -533,6 +533,7 @@ enum OpenMPSchedType {
 };
 
 enum OpenMPRTLFunction {
+  OMPRTL__kmpc_orqos_kv,
   /// Call to void __kmpc_fork_call(ident_t *loc, kmp_int32 argc,
   /// kmpc_micro microtask, ...);
   OMPRTL__kmpc_fork_call,
@@ -1364,6 +1365,24 @@ static llvm::Value *emitParallelOrTeamsOutlinedFunction(
   return CGF.GenerateOpenMPCapturedStmtFunction(*CS);
 }
 
+llvm::Value *CGOpenMPRuntime::emitQOSOutlinedFunction(
+		const OMPExecutableDirective &D, const VarDecl *ThreadIDVar,
+		OpenMPDirectiveKind InnermostKind, const RegionCodeGenTy &CodeGen)
+{
+	const CapturedStmt *CS = D.getCapturedStmt(OMPD_qoskv);
+	CodeGenFunction CGF(CGM, true);
+	bool HasCancel = false; // Only necessary to have all the code needed to expand beyond our simple current case.
+	if (const auto *OQOSD = dyn_cast<OMPQOSKVDirective>(&D))
+	{
+		//HasCancel = OQOSD->hasCancel();
+		HasCancel = true;
+	}
+
+	CGOpenMPOutlinedRegionInfo CGInfo (*CS, ThreadIDVar, CodeGen, InnermostKind, HasCancel, getOutlinedHelperName());
+	CodeGenFunction::CGCapturedStmtRAII CapInfoRAII(CGF, &CGInfo);
+	return CGF.GenerateOpenMPCapturedStmtFunction(*CS);
+}
+
 llvm::Value *CGOpenMPRuntime::emitParallelOutlinedFunction(
     const OMPExecutableDirective &D, const VarDecl *ThreadIDVar,
     OpenMPDirectiveKind InnermostKind, const RegionCodeGenTy &CodeGen) {
@@ -1629,6 +1648,12 @@ llvm::Constant *
 CGOpenMPRuntime::createRuntimeFunction(unsigned Function) {
   llvm::Constant *RTLFn = nullptr;
   switch (static_cast<OpenMPRTLFunction>(Function)) {
+  case OMPRTL__kmpc_orqos_kv: {
+    llvm::Type *TypeParams[] = {getIdentTyPointerTy(), CGM.Int32Ty, getKmpc_MicroPointerTy()};
+    auto *FnTy = llvm::FunctionType::get(CGM.VoidTy, TypeParams, /*isVarArg*/ true);
+    RTLFn = CGM.CreateRuntimeFunction(FnTy, "__kmpc_orqos_kv");
+    break;
+  }
   case OMPRTL__kmpc_fork_call: {
     // Build void __kmpc_fork_call(ident_t *loc, kmp_int32 argc, kmpc_micro
     // microtask, ...);
@@ -2842,6 +2867,44 @@ void CGOpenMPRuntime::emitParallelCall(CodeGenFunction &CGF, SourceLocation Loc,
     RegionCodeGenTy ThenRCG(ThenGen);
     ThenRCG(CGF);
   }
+}
+
+void CGOpenMPRuntime::emitQOSKVCall(CodeGenFunction &CGF, SourceLocation Loc,
+		llvm::Value *OutlinedFn, ArrayRef<llvm::Value *> CapturedVars)
+{
+	if (!CGF.HaveInsertPoint())
+		return;
+	llvm::Value *RTLoc = emitUpdateLocation(CGF, Loc);
+	auto &&QOSGen = [OutlinedFn, CapturedVars, RTLoc](CodeGenFunction &CGF, PrePostActionTy &) {
+		// Build call to liborqos
+		CGOpenMPRuntime &RT = CGF.CGM.getOpenMPRuntime();
+		llvm::Value *Args[] = {RTLoc,
+			CGF.Builder.getInt32(CapturedVars.size()), // Number of captured vars
+			CGF.Builder.CreateBitCast(OutlinedFn, RT.getKmpc_MicroPointerTy())};
+		llvm::SmallVector<llvm::Value *, 16> RealArgs;
+		RealArgs.append(std::begin(Args), std::end(Args));
+		RealArgs.append(CapturedVars.begin(), CapturedVars.end());
+		llvm::Value *RTLFn = RT.createRuntimeFunction(OMPRTL__kmpc_orqos_kv);
+		CGF.EmitRuntimeCall(RTLFn, RealArgs);
+	};
+#if 0
+	auto &&ElseGen = [OutlinedFn, CapturedVars, RTLoc, Loc](CodeGenFunction &CGF, PrePostActionTy &) {
+		CGOpenMPRuntime &RT = CGF.CGM.getOpenMPRuntime();
+		llvm::Value *ThreadID = RT.getThreadID(CGF, Loc);
+		llvm::Value *Args[] = {RTLoc, ThreadID};
+		CGF.EmitRuntimeCall(RT.createRuntimeFunction(OMPRTL__kmpc_liborqos_kv), Args);
+		Address ZeroAddr = CGF.CreateDefaultAlignTempAlloca(CGF.Int32Ty, /*Name*/ ".zero.addr");
+		CGF.InitTempAlloca(ZeroAddr, CGF.Builder.getInt32(/*C*/ 0));
+		llvm::SmallVector<llvm::Value *, 16> OutlinedFnArgs;
+		OutlinedFnArgs.push_back(ZeroAddr.getPointer());
+		OutlinedFnArgs.push_back(ZeroAddr.getPointer());
+		OutlinedFnArgs.append(CapturedVars.begin(), CapturedVars.end());
+		RT.emitOutlinedFunctionCall(CGF, Loc, OutlinedFn, OutlinedFnArgs);
+		llvm::Value *EndArgs[] = {RT.emitUpdateLocation(CGF, Loc), ThreadID};
+	};
+#endif
+	RegionCodeGenTy qosRCG(QOSGen);
+	qosRCG(CGF);
 }
 
 // If we're inside an (outlined) parallel region, use the region info's
@@ -7969,6 +8032,7 @@ void CGOpenMPRuntime::scanForTargetRegionsFunctions(const Stmt *S,
               CGM, ParentName,
               cast<OMPTargetTeamsDistributeParallelForSimdDirective>(E));
       break;
+    case OMPD_qoskv:
     case OMPD_parallel:
     case OMPD_for:
     case OMPD_parallel_for:
@@ -8411,6 +8475,7 @@ void CGOpenMPRuntime::emitTargetDataStandAloneCall(
       RTLFn = HasNowait ? OMPRTL__tgt_target_data_update_nowait
                         : OMPRTL__tgt_target_data_update;
       break;
+    case OMPD_qoskv:
     case OMPD_parallel:
     case OMPD_for:
     case OMPD_parallel_for:

@@ -758,6 +758,11 @@ public:
       const OMPExecutableDirective &D, const VarDecl *ThreadIDVar,
       OpenMPDirectiveKind InnermostKind, const RegionCodeGenTy &CodeGen);
 
+
+  virtual llvm::Value *emitQOSOutlinedFunction(
+  		  const OMPExecutableDirective &D, const VarDecl *ThreadIDVar,
+  		  OpenMPDirectiveKind InnermostKind, const RegionCodeGenTy &CodeGen);
+
   /// Emits outlined function for the specified OpenMP teams directive
   /// \a D. This outlined function has type void(*)(kmp_int32 *ThreadID,
   /// kmp_int32 BoundID, struct context_vars*).
@@ -809,6 +814,11 @@ public:
                                 llvm::Value *OutlinedFn,
                                 ArrayRef<llvm::Value *> CapturedVars,
                                 const Expr *IfCond);
+
+  /// GVALLEE: CHECKME
+  virtual void emitQOSKVCall(CodeGenFunction &CGF, SourceLocation Loc,
+                             llvm::Value *OutlinedFn,
+                             ArrayRef<llvm::Value *> CapturedVars);
 
   /// Emits a critical region.
   /// \param CriticalName Name of the critical region.

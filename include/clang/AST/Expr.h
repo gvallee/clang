@@ -5303,20 +5303,21 @@ public:
   friend class ASTStmtReader;
 };
 
+/// GVALLEE: I do not think this is the correct way to go
 class QOSKVExpr : public Expr {
-	private:
-		enum { PTR, ORDER, VAL1, ORDER_FAIL, VAL2, WEAK, END_EXPR };
-		Stmt *SubExprs[END_EXPR + 1];
-		unsigned NumSubExprs;
-		SourceLocation BuiltinLoc, RParenLoc;
+private:
+  enum { PTR, ORDER, VAL1, ORDER_FAIL, VAL2, WEAK, END_EXPR };
+  Stmt *SubExprs[END_EXPR + 1];
+  unsigned NumSubExprs;
+  SourceLocation BuiltinLoc, RParenLoc;
 
-		friend class ASTStmtReader;
-	public:
-		QOSKVExpr(SourceLocation BLoc, ArrayRef<Expr*> args, QualType t, SourceLocation RP);
+friend class ASTStmtReader;
+public:
+  QOSKVExpr(SourceLocation BLoc, ArrayRef<Expr*> args, QualType t, SourceLocation RP);
 
-		explicit QOSKVExpr(EmptyShell Empty) : Expr(QOSKVExprClass, Empty) { }
+  explicit QOSKVExpr(EmptyShell Empty) : Expr(QOSKVExprClass, Empty) { }
 
-		Expr *getPtr() const {
+  Expr *getPtr() const {
     return cast<Expr>(SubExprs[PTR]);
   }
   Expr *getOrder() const {

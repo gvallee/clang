@@ -6200,6 +6200,7 @@ StmtResult Sema::ActOnOpenMPQOSKVDirective(ArrayRef<OMPClause *> Clauses,
 		SourceLocation StartLoc,
 		SourceLocation EndLoc)
 {
+	/// GVALLEE: CHECKME
 	if (!AStmt)
 		return StmtError();
 
@@ -6220,17 +6221,12 @@ StmtResult Sema::ActOnOpenMPQOSKVDirective(ArrayRef<OMPClause *> Clauses,
 	if (auto *EWC = dyn_cast<ExprWithCleanups>(Body))
 		Body = EWC->getSubExpr();
 
-//	Expr *X = nullptr;
-//	Expr *V = nullptr;
-//	Expr *E = nullptr;
-//	Expr *UE = nullptr;
-//	bool IsXLHSInRHSPart = false;
-//	bool IsPostfixUpdate = false;
-
+	/*
 	if (QOSKVKind == OMPC_resilience)
 	{
 		/// GVALLEE: TODO
 	}
+	*/
 
 	return OMPQOSKVDirective::Create (Context, StartLoc, EndLoc, Clauses, AStmt);
 }

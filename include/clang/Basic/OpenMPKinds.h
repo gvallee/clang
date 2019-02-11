@@ -164,6 +164,9 @@ bool isOpenMPTaskLoopDirective(OpenMPDirectiveKind DKind);
 /// parallel', otherwise - false.
 bool isOpenMPParallelDirective(OpenMPDirectiveKind DKind);
 
+/// GVALLEE: CHECKME
+bool isOpenMPQOSKVDirective(OpenMPDirectiveKind DKind);
+
 /// Checks if the specified directive is a target code offload directive.
 /// \param DKind Specified directive.
 /// \return true - the directive is a target code offload directive like

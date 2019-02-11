@@ -803,6 +803,11 @@ bool clang::isOpenMPParallelDirective(OpenMPDirectiveKind DKind) {
          DKind == OMPD_target_teams_distribute_parallel_for_simd;
 }
 
+bool clang::isOpenMPQOSKVDirective(OpenMPDirectiveKind DKind)
+{
+	return DKind == OMPD_qoskv;
+}
+
 bool clang::isOpenMPTargetExecutionDirective(OpenMPDirectiveKind DKind) {
   return DKind == OMPD_target || DKind == OMPD_target_parallel ||
          DKind == OMPD_target_parallel_for ||
@@ -946,6 +951,9 @@ void clang::getOpenMPCaptureRegions(
     CaptureRegions.push_back(OMPD_teams);
     CaptureRegions.push_back(OMPD_parallel);
     break;
+  case OMPD_qoskv:
+    CaptureRegions.push_back(OMPD_qoskv);
+    break;
   case OMPD_simd:
   case OMPD_for:
   case OMPD_for_simd:
@@ -957,7 +965,6 @@ void clang::getOpenMPCaptureRegions(
   case OMPD_taskgroup:
   case OMPD_distribute:
   case OMPD_ordered:
-  case OMPD_qoskv:
   case OMPD_atomic:
   case OMPD_target_data:
   case OMPD_distribute_simd:
