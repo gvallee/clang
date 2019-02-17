@@ -102,6 +102,19 @@ public:
                         EmitPreInitStmt(S)) {}
 };
 
+/// Lexical scope for OpenMP qos construct, that handles correct codegen for captured expressions.
+class OMPQOSKVScope final : public OMPLexicalScope {
+  bool EmitPreInitStmt(const OMPExecutableDirective &S) {
+    OpenMPDirectiveKind Kind = S.getDirectiveKind();
+    return !(isOpenMPQOSKVDirective(Kind));
+  }
+
+public:
+  OMPQOSKVScope(CodeGenFunction &CGF, const OMPExecutableDirective &S)
+      : OMPLexicalScope(CGF, S, /*CaptureRegion=*/llvm::None,
+                        EmitPreInitStmt(S)) {}
+};
+
 /// Lexical scope for OpenMP teams construct, that handles correct codegen
 /// for captured expressions.
 class OMPTeamsScope final : public OMPLexicalScope {
@@ -1263,6 +1276,22 @@ static void emitCommonOMPParallelDirective(
   CGF.GenerateOpenMPCapturedVars(*CS, CapturedVars);
   CGF.CGM.getOpenMPRuntime().emitParallelCall(CGF, S.getLocStart(), OutlinedFn,
                                               CapturedVars, IfCond);
+}
+
+static void emitCommonOMPQOSKVDirective(
+    CodeGenFunction &CGF, const OMPExecutableDirective &S,
+    OpenMPDirectiveKind InnermostKind, const RegionCodeGenTy &CodeGen,
+    const CodeGenBoundParametersTy &CodeGenBoundParameters) {
+   const CapturedStmt *CS = S.getCapturedStmt(OMPD_qoskv);
+   llvm::Value *OutlinedFn =
+       CGF.CGM.getOpenMPRuntime().emitQOSOutlinedFunction(
+           S, *CS->getCapturedDecl()->param_begin(), InnermostKind, CodeGen);
+
+   OMPQOSKVScope Scope(CGF, S);
+   llvm::SmallVector<llvm::Value *, 16> CapturedVars;
+   CodeGenBoundParameters(CGF, S, CapturedVars);
+   CGF.GenerateOpenMPCapturedVars(*CS, CapturedVars);
+   CGF.CGM.getOpenMPRuntime().emitQOSKVCall(CGF, S.getLocStart(), OutlinedFn, CapturedVars);
 }
 
 static void emitEmptyBoundParameters(CodeGenFunction &,
@@ -2732,6 +2761,18 @@ void CodeGenFunction::EmitOMPParallelForSimdDirective(
                                  emitEmptyBoundParameters);
 }
 
+/// GVALLEE: MARK
+void CodeGenFunction::EmitOMPQOSKVDirective(
+		const OMPQOSKVDirective &S)
+{
+	auto &&CodeGen = [&S](CodeGenFunction &CGF, PrePostActionTy &Action) {
+		Action.Enter(CGF);
+	};
+
+	/// GVALLEE: CHECKME - I think we need more here, like emitCommonOMPParallelDirective
+	emitCommonOMPQOSKVDirective (*this, S, OMPD_qoskv, CodeGen, emitEmptyBoundParameters);
+}
+
 void CodeGenFunction::EmitOMPParallelSectionsDirective(
     const OMPParallelSectionsDirective &S) {
   // Emit directive as a combined directive that consists of two implicit
@@ -3545,10 +3586,13 @@ void CodeGenFunction::emitOMPSimpleStore(LValue LVal, RValue RVal,
   }
 }
 
-static void emitOMPQOSKVReadExpr (CodeGenFunction &CGF, bool IsSeqCst,
+static void emitOMPQOSKVResilienceExpr (CodeGenFunction &CGF, bool IsSeqCst,
 		const Expr *X, const Expr *V, SourceLocation Loc)
 {
 	/// GVALLEE: TODO
+	LValue XLValur = CGF.EmitLValue(X);
+	LValue VLValue = CGF.EmitLValue(V);
+	
 }
 
 static void emitOMPAtomicReadExpr(CodeGenFunction &CGF, bool IsSeqCst,
@@ -3853,7 +3897,7 @@ static void emitOMPQOSKVExpr(CodeGenFunction &CGF, OpenMPClauseKind Kind,
 	switch (Kind)
 	{
 		case OMPC_resilience:
-			emitOMPQOSKVReadExpr (CGF, IsSeqCst, X, V, Loc);
+			emitOMPQOSKVResilienceExpr (CGF, IsSeqCst, X, V, Loc);
 			break;
 		default:
 			llvm_unreachable("Clause is not allowed in 'omp qoskv'.");

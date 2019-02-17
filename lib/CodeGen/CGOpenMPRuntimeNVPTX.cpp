@@ -731,6 +731,7 @@ static bool hasNestedSPMDDirective(ASTContext &Ctx,
     case OMPD_target_teams_distribute:
       return isOpenMPParallelDirective(DKind) &&
              !hasParallelIfNumThreadsClause(Ctx, *NestedDir);
+    case OMPD_qoskv:
     case OMPD_target_simd:
     case OMPD_target_parallel:
     case OMPD_target_parallel_for:
@@ -805,6 +806,7 @@ static bool supportsSPMDExecutionMode(ASTContext &Ctx,
   case OMPD_target_simd:
   case OMPD_target_teams_distribute_simd:
     return false;
+  case OMPD_qoskv:
   case OMPD_parallel:
   case OMPD_for:
   case OMPD_parallel_for:

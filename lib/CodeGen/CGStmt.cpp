@@ -219,6 +219,9 @@ void CodeGenFunction::EmitStmt(const Stmt *S, ArrayRef<const Attr *> Attrs) {
   case Stmt::OMPCriticalDirectiveClass:
     EmitOMPCriticalDirective(cast<OMPCriticalDirective>(*S));
     break;
+  case Stmt::OMPQOSKVDirectiveClass:
+    EmitOMPQOSKVDirective(cast<OMPQOSKVDirective>(*S));
+    break;
   case Stmt::OMPParallelForDirectiveClass:
     EmitOMPParallelForDirective(cast<OMPParallelForDirective>(*S));
     break;

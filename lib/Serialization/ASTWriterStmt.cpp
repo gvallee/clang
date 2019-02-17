@@ -945,6 +945,7 @@ void ASTStmtWriter::VisitPseudoObjectExpr(PseudoObjectExpr *E) {
   Code = serialization::EXPR_PSEUDO_OBJECT;
 }
 
+/// GVALLEE: I do not think this is the way to go
 void ASTStmtWriter::VisitQOSKVExpr(QOSKVExpr *E)
 {
 	VisitExpr(E);
